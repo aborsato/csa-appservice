@@ -44,7 +44,6 @@ jobs:
       # Deploy to Azure Web apps
       - uses: azure/webapps-deploy@v2
         name: 'Azure webapp deploy'
-        working-directory: webapp
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: 'webapp/${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
