@@ -11,7 +11,7 @@ on:
 
 env:
   RESOURCE_GROUP: 'csa-appservice'
-  AZURE_WEBAPP_PACKAGE_PATH: 'webapp'
+  AZURE_WEBAPP_PACKAGE_PATH: '.deploy'
   DOTNET_VERSION: '6.0.x'
   AZURE_WEBAPP_NAME: 'a9ojg5e34mhhluds-wapp'
 
@@ -35,14 +35,16 @@ jobs:
       
       # Build the app
       - name: dotnet build and publish
+        working-directory: webapp
         run: |
           dotnet restore
           dotnet build --configuration Release
-          dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/.deploy' 
+          dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}' 
 
       # Deploy to Azure Web apps
       - uses: azure/webapps-deploy@v2
         name: 'Azure webapp deploy'
+        working-directory: webapp
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/.deploy'
+          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
