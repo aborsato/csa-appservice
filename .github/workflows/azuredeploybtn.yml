@@ -1,0 +1,35 @@
+name: Azure Deploy
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ "iac/**" ]
+  pull_request:
+    branches: [ main ]
+    paths: [ "iac/**" ]
+  workflow_dispatch:
+
+env:
+  RESOURCE_GROUP: 'csa-appservice'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # Outputs a generated ARM Template file
+      - uses: Azure/bicep-build-action@v1.0.0
+        name: Bicep Build
+        with:
+          bicepFilePath: iac/main.bicep
+          outputFilePath: azuredeploy.json
+
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          committer_name: GitHub Actions
+          committer_email: actions@github.com
+          message: '[auto commit] Updated Azure ARM template fro 1-click deploy'
+          add: 'azuredeploy.json'
