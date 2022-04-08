@@ -23,18 +23,19 @@ Azure landing zones are the output of a multisubscription Azure environment that
 ## Deploy
 
 Use the link below to deploy the entire solution to the subscription you want.
+
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Faborsato%2Fcsa-appservice%2Fmaster%2Fazuredeploy.json)
 
 You can also build from the Bicep file to import/deploy the resulting ARM template:
 ```bash
-az bicep build --file main.bicep --outfile azuredeploy.json
+az bicep build --file iac/main.bicep --outfile azuredeploy.json
 ```
 
 Or deploy it directly from the .bicep file:
 ```bash
 RESOURCE_GROUP="my-rg-name"
 az group create --name $RESOURCE_GROUP --location eastus
-az deployment group create -f ./main.bicep -g $RESOURCE_GROUP
+az deployment group create -f ./iac/main.bicep -g $RESOURCE_GROUP
 ```
 
 ## Azure services and related products
