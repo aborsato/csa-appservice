@@ -9,9 +9,6 @@ on:
     paths: [ "iac/**" ]
   workflow_dispatch:
 
-env:
-  RESOURCE_GROUP: 'csa-appservice'
-
 jobs:
   build:
     runs-on: ubuntu-latest
