@@ -8,7 +8,6 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: 'a9ojg5e34mhhluds-wapp'
-  ARTIFACT_NAME: webapp-dist
 
 jobs:
   build:

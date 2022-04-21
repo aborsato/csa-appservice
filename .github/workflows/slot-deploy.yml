@@ -10,13 +10,12 @@ on:
 env:
   RESOURCE_GROUP: 'csa-appservice'
   AZURE_WEBAPP_NAME: 'a9ojg5e34mhhluds-wapp'
-  ARTIFACT_NAME: webapp-dist
 
 jobs:
   build:
     uses: ./.github/workflows/build.yml
     with:
-      artifactname: ${{ env.ARTIFACT_NAME }}
+      artifactname: webapp-dist
 
   deploy-slot:
     runs-on: ubuntu-latest
@@ -31,7 +30,7 @@ jobs:
       - name: download artifact
         uses: actions/download-artifact@v3
         with:
-          name: ${{ env.ARTIFACT_NAME }}
+          name: webapp-dist
 
       # Create App Service slot
       - name: create app service slot
