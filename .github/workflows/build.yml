@@ -1,0 +1,40 @@
+name: build and publish artifact
+
+on:
+  workflow_call:
+    inputs:
+      artifactname:
+        required: true
+        type: string
+
+env:
+  AZURE_WEBAPP_PACKAGE_PATH: '.deploy'
+  DOTNET_VERSION: '6.0.x'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # Set up dotnet version
+      - uses: actions/setup-dotnet@v1
+        name: Setup dotnet
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      
+      # Build the app
+      - name: dotnet build and publish
+        working-directory: webapp
+        run: |
+          dotnet restore
+          dotnet build --configuration Release
+          dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+
+      # Publish build artifact
+      - name: publish artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.artifactname }}
+          path: webapp/${{ env.AZURE_WEBAPP_PACKAGE_PATH }}

@@ -1,0 +1,32 @@
+name: Undeploy PR Slot
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [ main ]
+    paths: [ "webapp/**" ]
+  workflow_dispatch:
+
+env:
+  RESOURCE_GROUP: 'csa-appservice'
+  AZURE_WEBAPP_NAME: 'a9ojg5e34mhhluds-wapp'
+
+jobs:
+  undeploy-slot:
+    runs-on: ubuntu-latest
+    steps:
+      # Log into Azure
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Delete App Service slot when PR is closed
+      - name: delete app service slot
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.35.0
+          inlineScript: |
+            az webapp deployment slot delete \
+              --name ${{ env.AZURE_WEBAPP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --slot pr${{ github.event.number }}
