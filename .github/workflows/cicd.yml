@@ -23,6 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: hmarr/debug-action@v2
+
       # Log into Azure
       - uses: azure/login@v1
         with:
@@ -48,7 +50,7 @@ jobs:
       - uses: haya14busa/action-cond@v1
         id: slotval
         with:
-          cond: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed') }}
+          cond: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'closed') }}
           if_true: production
           if_false: preprod_${{ github.event.number }}
 
