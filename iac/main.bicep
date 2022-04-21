@@ -13,6 +13,63 @@ param appName string = uniqueString(resourceGroup().id)
 var appServicePlanName = toLower('${appPrefix}${appName}-asp')
 var webSiteName = toLower('${appPrefix}${appName}-wapp')
 
+@description('The name for the Mongo DB database')
+param databaseName string = 'main'
+param cosmosLocation string = 'westus3'
+
+@description('Specifies the MongoDB server version to use.')
+@allowed([
+  '3.2'
+  '3.6'
+  '4.0'
+])
+param serverVersion string = '4.0'
+
+var accountName = toLower('${appPrefix}${appName}-cosmosdb')
+var locations = [
+  {
+    locationName: cosmosLocation
+    failoverPriority: 0
+    isZoneRedundant: false
+  }
+]
+
+// Creates a Cosmos DB Account
+resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2021-10-15' = {
+  name: accountName
+  location: cosmosLocation
+  kind: 'MongoDB'
+  properties: {
+    locations: locations
+    databaseAccountOfferType: 'Standard'
+    apiProperties: {
+      serverVersion: serverVersion
+    }
+    capabilities: [
+      {
+        name: 'EnableMongo'
+      }
+      {
+        name: 'DisableRateLimitingResponses'
+      }
+      {
+        name: 'EnableServerless'
+      }
+    ]
+  }
+}
+
+// Creates a Cosmos DB Database
+resource cosmosAccountDatabase 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2021-10-15' = {
+  name: databaseName
+  parent: cosmosAccount
+  properties: {
+    resource: {
+      id: databaseName
+    }
+  }
+}
+
 // Creates an App Service Plan to host the web app with default (Windows) stack
 resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
   name: appServicePlanName
@@ -24,7 +81,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
 }
 
 // Creates the App Service web app
-resource appService 'Microsoft.Web/sites@2020-06-01' = {
+resource appService 'Microsoft.Web/sites@2021-03-01' = {
   name: webSiteName
   location: location
   identity: {
@@ -35,6 +92,13 @@ resource appService 'Microsoft.Web/sites@2020-06-01' = {
     httpsOnly: true
     siteConfig: {
       minTlsVersion: '1.2'
+    }
+  }
+
+  resource staticSiteSettings 'config@2021-03-01' = {
+    name: 'appsettings'
+    properties: {
+      'CONNECTION_STRING': first(cosmosAccount.listConnectionStrings().connectionStrings).connectionString
     }
   }
 }
