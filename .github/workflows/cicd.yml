@@ -74,7 +74,7 @@ jobs:
         uses: azure/webapps-deploy@v2
         if: github.event_name == 'pull_request' && github.event.action != 'closed'
         with:
-          slot-name: ${{ steps.slotval.outputs.value }}
+          slot-name: pr${{ github.event.number }}
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: 'webapp/${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
 
@@ -83,7 +83,6 @@ jobs:
         uses: azure/webapps-deploy@v2
         if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'closed')
         with:
-          slot-name: ${{ steps.slotval.outputs.value }}
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: 'webapp/${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
 
