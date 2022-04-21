@@ -44,18 +44,45 @@ jobs:
           dotnet build --configuration Release
           dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
 
-      # Define Deployment slot
-      - uses: haya14busa/action-cond@v1
-        id: slotval
+      # Create App Service slot
+      - name: create app service slot
+        uses: azure/CLI@v1
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
         with:
-          cond: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'closed') }}
-          if_true: production
-          if_false: preprod_${{ github.event.number }}
+          azcliversion: 2.35.0
+          inlineScript: |
+            az webapp deployment slot create \
+              --name ${{ env.AZURE_WEBAPP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --slot pr${{ github.event.number }} \
+              --configuration-source ${{ env.AZURE_WEBAPP_NAME }}
 
-      # Deploy to Azure Web apps
-      - uses: azure/webapps-deploy@v2
-        name: 'Azure webapp deploy'
+      # Delete App Service slot if the pull request is closed
+      - name: delete app service slot
+        uses: azure/CLI@v1
+        if: github.event_name == 'pull_request' && github.event.action == 'closed'
         with:
-          slot-name: ${{ steps.slotval.outputs.value }}
+          azcliversion: 2.35.0
+          inlineScript: |
+            az webapp deployment slot delete \
+              --name ${{ env.AZURE_WEBAPP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --slot pr${{ github.event.number }}
+
+      # Deploy to Azure Web apps (slot-based)
+      - name: app service deploy
+        uses: azure/webapps-deploy@v2
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
+        with:
+          slot-name: pr${{ github.event.number }}
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: 'webapp/${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+
+      # Deploy to Azure Web apps
+      - name: app service deploy
+        uses: azure/webapps-deploy@v2
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'closed')
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: 'webapp/${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+
