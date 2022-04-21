@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths: [ "webapp/**" ]
   pull_request:
+    types: [opened, synchronize, reopened, closed]
     branches: [ main ]
     paths: [ "webapp/**" ]
   workflow_dispatch:
@@ -39,11 +40,20 @@ jobs:
         run: |
           dotnet restore
           dotnet build --configuration Release
-          dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}' 
+          dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+
+      # Define Deployment slot
+      - uses: haya14busa/action-cond@v1
+        id: slotval
+        with:
+          cond: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed') }}
+          if_true: production
+          if_false: preprod_${{ github.event.number }}
 
       # Deploy to Azure Web apps
       - uses: azure/webapps-deploy@v2
         name: 'Azure webapp deploy'
         with:
+          slot-name: ${{ steps.slotval.outputs.value }}
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: 'webapp/${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
