@@ -52,10 +52,28 @@ jobs:
           if_true: production
           if_false: preprod_${{ github.event.number }}
 
+      # Create App Service slot
+      - name: create app service slot
+        uses: azure/CLI@v1
+        if: steps.slotval.outputs.value != 'production'
+        with:
+          azcliversion: 2.35.0
+          inlineScript: |
+            az webapp deployment slot create --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --slot ${{ steps.slotval.outputs.value }}
+
       # Deploy to Azure Web apps
       - uses: azure/webapps-deploy@v2
-        name: 'Azure webapp deploy'
+        name: app service deploy
         with:
           slot-name: ${{ steps.slotval.outputs.value }}
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: 'webapp/${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+
+      # Delete App Service slot if the pull request is closed
+      - name: delete app service slot
+        uses: azure/CLI@v1
+        if: github.event_name == 'pull_request' && github.event.action == 'closed'
+        with:
+          azcliversion: 2.35.0
+          inlineScript: |
+            az webapp deployment slot delete --name ${{ env.AZURE_WEBAPP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --slot ${{ steps.slotval.outputs.value }}
