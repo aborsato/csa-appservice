@@ -44,8 +44,6 @@ jobs:
           dotnet build --configuration Release
           dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
 
-      - uses: hmarr/debug-action@v2
-
       # Define Deployment slot
       - uses: haya14busa/action-cond@v1
         id: slotval
