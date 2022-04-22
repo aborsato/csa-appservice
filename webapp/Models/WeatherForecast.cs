@@ -6,7 +6,7 @@ namespace webapp.Models;
 public class WeatherForecast
 {
     [JsonProperty(PropertyName = "id")]
-    public string Id { get; set; }
+    public string? Id { get; set; }
 
     [JsonProperty(PropertyName = "date")]
     public DateTime Date { get; set; }
