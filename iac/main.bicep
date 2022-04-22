@@ -98,7 +98,9 @@ resource appService 'Microsoft.Web/sites@2021-03-01' = {
   resource staticSiteSettings 'config@2021-03-01' = {
     name: 'appsettings'
     properties: {
-      'CONNECTION_STRING': first(cosmosAccount.listConnectionStrings().connectionStrings).connectionString
+      'CosmosDb:ConnectionString': first(cosmosAccount.listConnectionStrings().connectionStrings).connectionString
+      'CosmosDb:DatabaseName': databaseName
+      'CosmosDb:ContainerName': 'WeatherForecast'
     }
   }
 }
