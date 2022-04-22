@@ -17,14 +17,6 @@ var webSiteName = toLower('${appPrefix}${appName}-wapp')
 param databaseName string = 'main'
 param cosmosLocation string = 'westus3'
 
-@description('Specifies the MongoDB server version to use.')
-@allowed([
-  '3.2'
-  '3.6'
-  '4.0'
-])
-param serverVersion string = '4.0'
-
 var accountName = toLower('${appPrefix}${appName}-cosmosdb')
 var locations = [
   {
@@ -42,9 +34,6 @@ resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2021-10-15' = {
   properties: {
     locations: locations
     databaseAccountOfferType: 'Standard'
-    apiProperties: {
-      serverVersion: serverVersion
-    }
     capabilities: [
       {
         name: 'DisableRateLimitingResponses'
