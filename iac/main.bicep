@@ -38,7 +38,7 @@ var locations = [
 resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2021-10-15' = {
   name: accountName
   location: cosmosLocation
-  kind: 'MongoDB'
+  kind: 'GlobalDocumentDB'
   properties: {
     locations: locations
     databaseAccountOfferType: 'Standard'
@@ -46,9 +46,6 @@ resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2021-10-15' = {
       serverVersion: serverVersion
     }
     capabilities: [
-      {
-        name: 'EnableMongo'
-      }
       {
         name: 'DisableRateLimitingResponses'
       }

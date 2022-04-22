@@ -8,23 +8,16 @@ namespace webapp.Controllers;
 [Route("[controller]")]
 public class WeatherForecastController : ControllerBase
 {
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
-
     private readonly IWeatherForecastService _forecastService;
-    private readonly ILogger<WeatherForecastController> _logger;
 
-    public WeatherForecastController(IWeatherForecastService forecastService, ILogger<WeatherForecastController> logger)
+    public WeatherForecastController(IWeatherForecastService forecastService)
     {
         _forecastService = forecastService;
-        _logger = logger;
     }
 
     [HttpGet]
     public async Task<IEnumerable<WeatherForecast>> Get()
     {
-        return await _forecastService.GetNAsync(10);
+        return await _forecastService.GetNAsync("SELECT * FROM c");
     }
 }

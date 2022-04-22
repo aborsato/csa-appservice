@@ -1,23 +1,36 @@
-using MongoDB.Driver;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Fluent;
+using Microsoft.Extensions.Configuration;
 using webapp.Models;
 
 namespace webapp.Services;
 
 public class WeatherForecastService : IWeatherForecastService
 {
-    private readonly IMongoCollection<WeatherForecast> _forecasts;
+    private Container _container;
 
-    public WeatherForecastService(MongoService mongo, IDatabaseSettings settings)
+    public WeatherForecastService(
+        CosmosClient dbClient,
+        string databaseName,
+        string containerName)
     {
-        var db = mongo.GetClient().GetDatabase(settings.DatabaseName);
-        _forecasts = db.GetCollection<WeatherForecast>(settings.ProductCollectionName);
+        this._container = dbClient.GetContainer(databaseName, containerName);
     }
 
-    public Task<List<WeatherForecast>> GetNAsync(int n)
+    public async Task<List<WeatherForecast>> GetNAsync(string queryString)
     {
-        return _forecasts.Find(product => true).Limit(n).ToListAsync();
+        var query = this._container.GetItemQueryIterator<WeatherForecast>(new QueryDefinition(queryString));
+        List<WeatherForecast> results = new List<WeatherForecast>();
+        while (query.HasMoreResults)
+        {
+            var response = await query.ReadNextAsync();
+            results.AddRange(response.ToList());
+        }
+
+        return results;
     }
 
 }

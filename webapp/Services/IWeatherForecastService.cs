@@ -6,6 +6,6 @@ namespace webapp.Services
 {
     public interface IWeatherForecastService
     {
-        public Task<List<WeatherForecast>> GetNAsync(int n);
+        public Task<List<WeatherForecast>> GetNAsync(string queryString);
     }
 }
