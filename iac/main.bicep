@@ -13,14 +13,13 @@ param appName string = uniqueString(resourceGroup().id)
 var appServicePlanName = toLower('${appPrefix}${appName}-asp')
 var webSiteName = toLower('${appPrefix}${appName}-wapp')
 
-@description('The name for the Mongo DB database')
+@description('The name for the Cosmos DB database')
 param databaseName string = 'main'
-param cosmosLocation string = 'westus3'
 
 var accountName = toLower('${appPrefix}${appName}-cosmosdb')
 var locations = [
   {
-    locationName: cosmosLocation
+    locationName: location
     failoverPriority: 0
     isZoneRedundant: false
   }
@@ -29,7 +28,7 @@ var locations = [
 // Creates a Cosmos DB Account
 resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2021-10-15' = {
   name: accountName
-  location: cosmosLocation
+  location: location
   kind: 'GlobalDocumentDB'
   properties: {
     locations: locations
@@ -46,7 +45,7 @@ resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2021-10-15' = {
 }
 
 // Creates a Cosmos DB Database
-resource cosmosAccountDatabase 'Microsoft.DocumentDB/databaseAccounts/mongodbDatabases@2021-10-15' = {
+resource cosmosAccountDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2021-10-15' = {
   name: databaseName
   parent: cosmosAccount
   properties: {
