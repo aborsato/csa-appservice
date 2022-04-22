@@ -1,9 +1,12 @@
 # Azure App Service
+
+[![CI-CD](https://github.com/aborsato/csa-appservice/actions/workflows/cicd.yml/badge.svg)](https://github.com/aborsato/csa-appservice/actions/workflows/cicd.yml)
+
 Azure App Service quickly and easily creates enterprise-ready web and mobile apps for any platform or device, and deploy them on a scalable and reliable cloud infrastructure.
 
 This is a sample deployment to get started with Web API in Azure, featuring:
 - App Service
-- API Management
+- Cosmos DB
 
 
 # Landing Zone
