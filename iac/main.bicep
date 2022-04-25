@@ -13,6 +13,48 @@ param appName string = uniqueString(resourceGroup().id)
 var appServicePlanName = toLower('${appPrefix}${appName}-asp')
 var webSiteName = toLower('${appPrefix}${appName}-wapp')
 
+@description('The name for the Cosmos DB database')
+param databaseName string = 'main'
+
+var accountName = toLower('${appPrefix}${appName}-cosmosdb')
+var locations = [
+  {
+    locationName: location
+    failoverPriority: 0
+    isZoneRedundant: false
+  }
+]
+
+// Creates a Cosmos DB Account
+resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2021-10-15' = {
+  name: accountName
+  location: location
+  kind: 'GlobalDocumentDB'
+  properties: {
+    locations: locations
+    databaseAccountOfferType: 'Standard'
+    capabilities: [
+      {
+        name: 'DisableRateLimitingResponses'
+      }
+      {
+        name: 'EnableServerless'
+      }
+    ]
+  }
+}
+
+// Creates a Cosmos DB Database
+resource cosmosAccountDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2021-10-15' = {
+  name: databaseName
+  parent: cosmosAccount
+  properties: {
+    resource: {
+      id: databaseName
+    }
+  }
+}
+
 // Creates an App Service Plan to host the web app with default (Windows) stack
 resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
   name: appServicePlanName
@@ -24,7 +66,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
 }
 
 // Creates the App Service web app
-resource appService 'Microsoft.Web/sites@2020-06-01' = {
+resource appService 'Microsoft.Web/sites@2021-03-01' = {
   name: webSiteName
   location: location
   identity: {
@@ -35,6 +77,15 @@ resource appService 'Microsoft.Web/sites@2020-06-01' = {
     httpsOnly: true
     siteConfig: {
       minTlsVersion: '1.2'
+    }
+  }
+
+  resource staticSiteSettings 'config@2021-03-01' = {
+    name: 'appsettings'
+    properties: {
+      'CosmosDb:ConnectionString': first(cosmosAccount.listConnectionStrings().connectionStrings).connectionString
+      'CosmosDb:DatabaseName': databaseName
+      'CosmosDb:ContainerName': 'WeatherForecast'
     }
   }
 }

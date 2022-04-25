@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.4.1318.3566",
-      "templateHash": "1210182886723837198"
+      "version": "0.5.6.12127",
+      "templateHash": "11524470639765804089"
     }
   },
   "parameters": {
@@ -28,13 +28,74 @@
     "appName": {
       "type": "string",
       "defaultValue": "[uniqueString(resourceGroup().id)]"
+    },
+    "databaseName": {
+      "type": "string",
+      "defaultValue": "main",
+      "metadata": {
+        "description": "The name for the Cosmos DB database"
+      }
     }
   },
   "variables": {
     "appServicePlanName": "[toLower(format('{0}{1}-asp', parameters('appPrefix'), parameters('appName')))]",
-    "webSiteName": "[toLower(format('{0}{1}-wapp', parameters('appPrefix'), parameters('appName')))]"
+    "webSiteName": "[toLower(format('{0}{1}-wapp', parameters('appPrefix'), parameters('appName')))]",
+    "accountName": "[toLower(format('{0}{1}-cosmosdb', parameters('appPrefix'), parameters('appName')))]",
+    "locations": [
+      {
+        "locationName": "[parameters('location')]",
+        "failoverPriority": 0,
+        "isZoneRedundant": false
+      }
+    ]
   },
   "resources": [
+    {
+      "type": "Microsoft.Web/sites/config",
+      "apiVersion": "2021-03-01",
+      "name": "[format('{0}/{1}', variables('webSiteName'), 'appsettings')]",
+      "properties": {
+        "CosmosDb:ConnectionString": "[first(listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('accountName')), '2021-10-15').connectionStrings).connectionString]",
+        "CosmosDb:DatabaseName": "[parameters('databaseName')]",
+        "CosmosDb:ContainerName": "WeatherForecast"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('webSiteName'))]",
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('accountName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts",
+      "apiVersion": "2021-10-15",
+      "name": "[variables('accountName')]",
+      "location": "[parameters('location')]",
+      "kind": "GlobalDocumentDB",
+      "properties": {
+        "locations": "[variables('locations')]",
+        "databaseAccountOfferType": "Standard",
+        "capabilities": [
+          {
+            "name": "DisableRateLimitingResponses"
+          },
+          {
+            "name": "EnableServerless"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+      "apiVersion": "2021-10-15",
+      "name": "[format('{0}/{1}', variables('accountName'), parameters('databaseName'))]",
+      "properties": {
+        "resource": {
+          "id": "[parameters('databaseName')]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('accountName'))]"
+      ]
+    },
     {
       "type": "Microsoft.Web/serverfarms",
       "apiVersion": "2020-06-01",
@@ -47,7 +108,7 @@
     },
     {
       "type": "Microsoft.Web/sites",
-      "apiVersion": "2020-06-01",
+      "apiVersion": "2021-03-01",
       "name": "[variables('webSiteName')]",
       "location": "[parameters('location')]",
       "identity": {
