@@ -2,9 +2,9 @@ namespace webapp.Models;
 
 public class DatabaseSettings : IDatabaseSettings
 {
-    public string DatabaseName { get; set; }
-    public string ProductCollectionName { get; set; }
-    public string MongoConnectionString { get; set; }
+    public string DatabaseName { get; set; } = "";
+    public string ProductCollectionName { get; set; } = "";
+    public string MongoConnectionString { get; set; } = "";
 }
 
 public interface IDatabaseSettings
